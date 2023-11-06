@@ -1,0 +1,8 @@
+title: PLEX
+description: Making the Most of the Available Data for Robotic Manipulation Pretraining
+authors: Garrett Thomas, Ching-An Cheng, Ricky Loynd, Felipe Vieira Frujeri, Vibhav Vineet, Mihai Jalobeanu, Andrey Kolobov
+buttons:
+  Paper: 'https://arxiv.org/abs/2303.08789'
+remote_theme: pages-themes/cayman@v0.2.0
+plugins:
+- jekyll-remote-theme # add this line to the plugins list if you already have one
