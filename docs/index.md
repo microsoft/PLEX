@@ -27,7 +27,7 @@ During fine-tuning, the entire network is trained end-to-end using TTD data.
 
 ## Experiments
 
-![Meta-World box-close task](./assets/img/metaworld-box.png)![Robosuite pick-place can task](./assets/img/robosuite-can.png)
+![Examples of tasks used in experiments](./assets/img/robots.png)
 
 We investigate the performance of PLEX on the Meta-World benchmark, using videos from 45 tasks and evaluating on 5 other target tasks:
 ![Meta-World results](./assets/img/metaworld-results.png)
