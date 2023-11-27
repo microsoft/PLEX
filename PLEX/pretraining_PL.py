@@ -27,7 +27,7 @@ def pretrain_PL(cmdline_args):
     args = vars(args)
     if not args['bc_learning_mode']:
         assert 'reward' not in args['modalities_to_mask'], "If the model is expected to condition on returns, then they should not be masked out."
-    assert args['best_metric'] != 'evaluation/return_mean', 'Currently, evaluation/return_mean is not a valid metric for pretraining. Use evaluation/neg_val_error instead.'
+    assert args['best_metric'] != 'evaluation/success_rate', 'Currently, evaluation/success_rate is not a valid metric for pretraining. Use evaluation/neg_val_error instead.'
 
     # If we are pretraining a PLEX model, for loss computation we should use *just* the obs. embedding predictions,
     # not predictions of inverse dynamics.

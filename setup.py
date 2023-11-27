@@ -12,11 +12,13 @@ setup(
     long_description=open('README.md').read(),
     install_requires=[
         "h5py==3.4.0",
+        "numpy<=1.23.5",
         "mujoco==2.1.5",
         "robosuite==1.3.2",
         "egl_probe@git+https://github.com/StanfordVL/egl_probe",
         "robomimic@git+https://github.com/akolobov/robomimic",
         "r3m@git+https://github.com/akolobov/r3m",
+        "setuptools==66",
         "gym==0.20.0",
         "torch<=2.0.1",
         "torchvision",

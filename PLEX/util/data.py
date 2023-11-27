@@ -16,11 +16,11 @@ import robomimic.utils.file_utils as FileUtils
 from PIL import Image
 from copy import deepcopy
 import gym
-from environments import *
 from metaworld.data.dataset import *
 from metaworld.data.utils import normalize_reward
 import PLEX.util.globals as globals
 from PLEX.util.misc import construct_rewards
+from PLEX.envs.environments import *
 
 MIN_REWARD = math.inf
 MAX_REWARD = -math.inf

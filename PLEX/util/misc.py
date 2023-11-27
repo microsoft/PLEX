@@ -7,7 +7,7 @@ from collections import defaultdict
 import PLEX.util.globals as globals
 from PLEX.util.log import setup_logging
 from PLEX.util.timer import Timer
-from environments import *
+from PLEX.envs.environments import *
 from PLEX.models.trajectory_models.plex import PLEX
 from PLEX.models.trajectory_models.mlp_bc import MLPBCModel
 from PLEX.models.trajectory_models.decision_transformer import DecisionTransformer
@@ -382,11 +382,11 @@ def run_training(trainer, model, num_steps, model_filename_prefix, cmdline_args,
 
         torch.save(model.state_dict(), log.dir/(model_filename_prefix + model_info + 'latest.pt'))
         torch.save(model.state_dict(), log.dir/(model_filename_prefix + model_info + f'iter_{iter+1}.pt'))
-        print(f'Available Metrics are {outputs.keys()}')
         metric_of_interest = outputs[cmdline_args['best_metric']]
         if metric_of_interest > best:
             best = metric_of_interest
             log(f'New best: {best}')
             torch.save(model.state_dict(), log.dir/(model_filename_prefix + model_info + 'best.pt'))
 
+    print(f"\n\nTHE BEST VALUE OF THE {cmdline_args['best_metric']} METRIC ACROSS ALL TRAINING ITERATIONS IS {best}.")
     return dict(metrics)

@@ -103,8 +103,8 @@ def add_common_args(parser):
     # Evaluation
     # What fraction of the top demo trajectory returns will be used during evaluation?
     # NOTE: this parameter is relevant only if we are in the offline RL mode, not BC mode.
-    parser.add_argument('--top_return_fraction', type=float, default=0.2)
-    parser.add_argument('--best_metric', type=str, default='evaluation/neg_val_error', choices=['evaluation/neg_val_error', 'evaluation/return_mean'])
+    parser.add_argument('--top_return_fraction', type=float, default=1.0)
+    parser.add_argument('--best_metric', type=str, default='evaluation/neg_val_error', choices=['evaluation/neg_val_error', 'evaluation/success_rate'])
     # NOTE: during pretraining, --validation_frac applies *only* to tasks specified by --validation_tasks,
     # and specify the fraction of these tasks' trajectrories that will be used for validation.
     #
@@ -114,7 +114,7 @@ def add_common_args(parser):
     #
     # During finetuning, --validation_frac applies only to --target_task, and --validation_tasks must be None.
     #
-    # NOTE: If during finetuning --best_metric is evaluation/return_mean (i.e., success rate),
+    # NOTE: If during finetuning --best_metric is evaluation/success_rate (i.e., success rate),
     # --validation_frac is ignored and all of --target_task's trajectories are used for training. In this case,
     # validation loss isn't computed.
     #

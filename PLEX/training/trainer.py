@@ -79,6 +79,10 @@ class Trainer:
         self.start_time = time.time()
 
     def train_iteration(self, num_steps, iter_num=0, print_fn=None):
+        if print_fn is not None:
+            print('\n\n\n')
+            print_fn(('=' * 26) + f' ITERATION {iter_num} ' +  ('=' * 26) + '\n')
+
         logs = dict()
 
         train_start = time.time()
@@ -93,6 +97,8 @@ class Trainer:
         logs['time/training'] = time.time() - train_start
         eval_start = time.time()
 
+        print('\n')
+        print_fn(('-' * 20) + f' ITERATION {iter_num} EVALUATION ' +  ('-' * 20) + '\n')
         for eval_fn in self.eval_fns:
             outputs = eval_fn(self.model, iter_num)
             for k, v in outputs.items():
@@ -107,8 +113,8 @@ class Trainer:
         self.diagnostics.clear() # reset for next iteration
 
         if print_fn is not None:
-            print_fn('=' * 80)
-            print_fn(f'Iteration {iter_num}')
+            print('\n')
+            print_fn(('-' * 15) + f' ITERATION {iter_num} EVALUATION RESULTS ' +  ('-' * 15) + '\n')
             for k, v in sorted(logs.items()):
                 print_fn(f'{k}: {v}')
 

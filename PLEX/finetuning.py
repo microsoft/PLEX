@@ -61,8 +61,8 @@ def finetune(cmdline_args):
     #assert args['validation_tasks'] is None, f"Validation tasks other than the target tasks aren't used during finetuning and were likely specified erroneously: {args['validation_tasks']}."
 
     # Train/test split
-    # NOTE: we don't actually need create the split if args['best_metric'] == 'evaluation/return_mean'
-    if args['best_metric'] == 'evaluation/return_mean':
+    # NOTE: we don't actually need create the split if args['best_metric'] == 'evaluation/success_rate'
+    if args['best_metric'] == 'evaluation/success_rate':
         print("WARNING: since the evaluation metric is success rate, the training-validation split of the target task data will be ignored, and all target-task trajectories will be used for training.")
     train_trajectories, val_trajectories = train_val_split(data[target_task.name], args['validation_frac'])
     target_all_data = TrajectoryDataset(data[target_task.name], camera_names, contextual=True)
@@ -117,7 +117,7 @@ def finetune(cmdline_args):
 
     # Setup a model evaluator
     eval_fn_dict = {'evaluation/neg_val_error': get_validation_error_evaluator(target_val_data, args, device),
-                    'evaluation/return_mean': get_success_rate_evaluator(target_task, target_all_data, common_env_metadata_dict, args, log.dir)}
+                    'evaluation/success_rate': get_success_rate_evaluator(target_task, target_all_data, common_env_metadata_dict, args, log.dir)}
     eval_fns = [eval_fn_dict[args['best_metric']]]
 
     # Instantiate a trainer

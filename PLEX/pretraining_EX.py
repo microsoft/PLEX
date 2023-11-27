@@ -22,7 +22,7 @@ def pretrain_EX(cmdline_args):
     # Parse them and validate them
     args = parser.parse_args(cmdline_args)
     args = vars(args)
-    assert args['best_metric'] != 'evaluation/return_mean', 'Currently, evaluation/return_mean is not a valid metric for pretraining. Use evaluation/neg_val_error instead.'
+    assert args['best_metric'] != 'evaluation/success_rate', 'Currently, evaluation/success_rate is not a valid metric for pretraining. Use evaluation/neg_val_error instead.'
 
     # These parameters are needed only for evaluating the model. Since at the current stage we are pretraining just the EX
     # (inverse dynamics) part of PLEX, the values of the parameters other than bc_learning_mode don't matter, since at the

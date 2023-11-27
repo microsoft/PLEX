@@ -3,11 +3,10 @@ import time
 import math
 import random
 from copy import deepcopy
-from environments import DEFAULT_CAM
 import numpy as np
 import torch
 import torch.multiprocessing as mp
-from environments import RobosuiteEnv, MetaWorldEnv, d4rlEnv, init_obs_preprocessing, unprocess_image
+from PLEX.envs.environments import DEFAULT_CAM, RobosuiteEnv, MetaWorldEnv, d4rlEnv, init_obs_preprocessing, unprocess_image
 from PLEX.models.trajectory_models.plex import PLEX
 import robomimic.utils.obs_utils as ObsUtils
 import cv2
@@ -44,12 +43,6 @@ def evaluate_episode(
         if ObsUtils.OBS_KEYS_TO_MODALITIES is None:
             init_obs_preprocessing(camera_names, image_size)
 
-    # Make sure that either:
-    # (a) these settings are the same as at training time or
-    # (b) the model was trained and is being evaluated in BC mode (i.e., rewards/returns weren't used
-    # at training time and are ignored at evaluation time).
-    print(f'Is the reward normalized **at evaluation time**: {use_normalized_reward}')
-    print(f'Reward type **at evaluation time**: {reward_type}')
     image_obs_list = []
     if task.dataset_type in {'robosuite', 'robomimic'}:
         # Choosing a GPU for each episode in this way prevents all evluation env instances from running on the same GPU and potentially causing an OOM error.
@@ -111,13 +104,13 @@ def evaluate_episode(
     actions = torch.zeros((0, env.action_dim), device=device, dtype=torch.float32)
     rewards = torch.zeros(0, device=device, dtype=torch.float32)
 
-    print(f'Target return at evaluation time: {target_return}')
+    # print(f'Target return at evaluation time: {target_return}')
     ep_return = target_return
     target_return = torch.tensor(ep_return, device=device, dtype=torch.float32).reshape(1, 1)
     timesteps = torch.tensor(0, device=device, dtype=torch.long).reshape(1, 1)
 
     episode_return, episode_success, episode_length = 0, False, 0
-    print("Starting an evaluation episode...")
+    print(f"Starting evaluation episode {ep_id}...")
     contig_success_steps = 0
     for t in range(max_ep_len):
         # add padding
@@ -190,15 +183,15 @@ def evaluate_episode(
     if task.dataset_type == 'd4rl':
         normalize_score = lambda returns: d4rl.get_normalized_score(task.name, returns)*100.0
         episode_return = normalize_score(episode_return)
-    print(f"NATIVE undiscounted return: {episode_return}")
-    print(f"Episode {('SUCCEEDED' if episode_success else 'FAILED')}")
-    print(f"Episode length:{episode_length}")
-    print("Finishing the evaluation episode...\n")
+    print(f"Episode {ep_id} undiscounted return *in terms of native rewards*: {episode_return}")
+    print(f"Episode {ep_id} {('SUCCEEDED' if episode_success else 'FAILED')}")
+    print(f"Episode {ep_id} length: {episode_length}")
+    print("\n")
 
     if record_camera is not None and record_traj_dir is not None:
         import moviepy.editor as mpy
         clip = mpy.ImageSequenceClip(image_obs_list, fps=30)
-        clip.write_videofile(str(record_traj_dir/f"movie_{ep_id}_{('SUCCESS' if episode_success else 'FAILURE')}.mp4"))
+        clip.write_videofile(str(record_traj_dir/f"movie_{ep_id}_{('SUCCESS' if episode_success else 'FAILURE')}.mp4"), logger=None)
 
     return episode_return, episode_success, episode_length
 
@@ -216,7 +209,7 @@ def evaluate_parallel(conditions, task, model, reward_type, use_normalized_rewar
         {'task': task, 'model': model, 'ep_id': id, 'use_normalized_reward': use_normalized_reward, 'reward_type': reward_type,
          'env_meta': env_meta, 'full_state_mode': full_state_mode, 'context': context, 'target_return': target_return,
          'device': device, **kwargs}
-        for id, (context, target_return) in zip(range(len(conditions)), conditions)
+        for id, (context, target_return) in zip(range(1, len(conditions)+1), conditions)
     ]
     if num_workers > 0:
         model.share_memory()
@@ -267,6 +260,11 @@ def get_success_rate_evaluator(task, traj_data, env_metadata, cmdline_args, log_
 
         for e in range(cmdline_args['num_eval_episodes']):
             while True:
+                # During evaluation with success_rate (and simultaneously success rate) as the metric,
+                # validation_frac is just the fraction of training trajectories whose goal images will serve as contexts during evaluation.
+                # Note that each episode will generally start with a scene where even objects other than the goal objects will
+                # generally be positioned differently than in any goal image the agent has seen in training, so sampling evaluation-time
+                # contexts from among the training trajectory goals is fine.
                 val_traj = random.choice(traj_data.trajectories)
                 context, is_valid = get_context(val_traj, 0, len(val_traj['reward']))
                 if is_valid:
@@ -279,6 +277,14 @@ def get_success_rate_evaluator(task, traj_data, env_metadata, cmdline_args, log_
                 print(f"Target return for episode {e}: {target_return}")
 
             conditions.append((context, target_return))
+
+        if not cmdline_args['bc_learning_mode']:
+            # Make sure that either:
+            # (a) these settings are the same as at training time or
+            # (b) the model was trained and is being evaluated in BC mode (i.e., rewards/returns weren't used
+            # at training time and are ignored at evaluation time).
+            print(f'Is the reward normalized **at evaluation time**: {cmdline_args["normalize_reward"]}')
+            print(f'Type of reward to be used for conditioning at evaluation time: {cmdline_args["reward_type"]}')
 
         returns, succ_episodes, lengths = evaluate_parallel(
             conditions, task, model,
@@ -298,12 +304,14 @@ def get_success_rate_evaluator(task, traj_data, env_metadata, cmdline_args, log_
         )
 
         num_succ = len([s for s in succ_episodes if s is True])
+        success_rate = num_succ/len(succ_episodes)*100
 
-        print(f'EPOCH {step} SUCCESS RATE: {num_succ/len(succ_episodes)*100}%')
-        print(f'EPOCH {step} EXPECTED NATIVE RETURN: {np.mean(returns)}')
-        print(f'EPOCH {step} MEAN EPISODE LENGTH: {np.mean(lengths)}')
+        print(f'Iteration {step} SUCCESS RATE: {success_rate}%')
+        print(f'Iteration {step} MEAN NATIVE RETURN: {np.mean(returns)}')
+        print(f'Iteration {step} MEAN EPISODE LENGTH: {np.mean(lengths)}')
 
         return {
+            'success_rate': success_rate,
             'return_mean': np.mean(returns),
             'return_std': np.std(returns),
             'length_mean': np.mean(lengths),
@@ -354,7 +362,7 @@ def get_finetuning_based_evaluator(ft_based_val_train_data, ft_based_val_val_dat
     val_fns = {task_name: get_validation_error_evaluator(task_data, cmdline_args, device) for task_name, task_data in ft_based_val_val_data.items()}
 
     def finetune_eval(model, step):
-        print(f'==== STARTING EVALUATION FOR EPOCH {step} ====')
+        print(f'==== STARTING EVALUATION FOR ITERATION {step} ====')
         model_state = deepcopy(model.state_dict())
         val_errors = {}
         for task_name, _ in ft_based_val_train_data.items():
