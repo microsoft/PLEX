@@ -1,5 +1,21 @@
 ## Overview
 
+This repo provides code and instructions for experimenting with the [PLEX architecture](https://microsoft.github.io/PLEX/) for robotic manipulation agents.
+
+
+__Table of Contents__
+- [Installation](#installation)
+- [Meta-World experiments](#meta-world-experiments)
+  * [Meta-World data setup](#meta-world-data-setup)
+  * [Running the PLEX paper's Meta-World experiments](#running-the-plex-papers-meta-world-experiments)
+- [Robosuite/Robomimic experiments](#robosuiterobomimic-experiments)
+  * [Robosuite/Robomimic data setup](#robosuiterobomimic-data-setup)
+  * [Running the PLEX paper's Robosuite/Robomimic experiments](#running-the-plex-papers-robosuiterobomimic-experiments)
+- [Citing PLEX and the accompanying data](#citing-plex-and-the-accompanying-data)
+- [Contributing](#contributing)
+- [Trademarks](#trademarks)
+
+
 
 ## Installation
 
@@ -40,14 +56,14 @@ mkdir store
 
 ## Meta-World experiments
 
-### Data setup
+### Meta-World data setup
 
-[The PLEX paper](https://arxiv.org/abs/2303.08789)'s Meta-World experiments use data that can be generated using scripted Meta-World policies with different levels of noise. These policies use a modified Meta-World flavor from the [PLEX-Metaworld](https://github.com/microsoft/PLEX-Metaworld) repo, which is installed automatically as one of PLEX's dependencies above.
+The [PLEX paper](https://arxiv.org/abs/2303.08789)'s Meta-World experiments use data that can be generated using scripted Meta-World policies with different levels of noise. These policies use a modified Meta-World flavor from the [PLEX-Metaworld](https://github.com/microsoft/PLEX-Metaworld) repo, which is installed automatically as one of PLEX's dependencies above.
 
 To generate this training data, run the command below from the PLEX repo root. It will generate 100 trajectories for each of the 50 Meta-World tasks and extra 75 trajectories for 5 of these tasks, so it will take some time:
 
 ```
-python scripts/gen_MW_data_for_PLEX.py --out=store/data/metaworld
+python scripts/gen_MW_data_for_PLEX.py --out=store/data/
 ```
 
 The data will be placed in the `store` directory you created during PLEX setup.
@@ -60,7 +76,7 @@ The data will be placed in the `store` directory you created during PLEX setup.
 To do so, run the following from the PLEX repo root:
 
 ```
-python scripts/exps_on_MW.py --training_stage=ex --data_dir=store/data/ --log_dir=store/logs
+python scripts/exps_on_MW.py --training_stage=ex --data_dir=store/data/ --log_dir=store/logs/
 ```
 
 #### Next, complete PLEX pretraining by choosing a checkpoint with a pretrained EX and pretraining PL on top of it.
@@ -81,6 +97,50 @@ python scripts/exps_on_MW.py --training_stage=ft --data_dir=store/data/ --num_wo
 ```
 
 **NOTE**: If running PLEX on CPU, set `--num_workers=0`. Running PLEX on CPU with `--num_workers` > 0 will throw a  `"To use CUDA with multiprocessing, you must use the 'spawn' start method"` error, and using the `spawn` method will throw another error.
+
+
+## Robosuite/Robomimic experiments
+
+### Robosuite/Robomimic data setup
+
+The training demonstrations for PLEX's Robosuite/Robomimic experiments were partly collected by us and partly come from the Robomimic dataset. For Robosuite, we collected 75 trajectories for `Door`, `Stack`, `PickPlaceMilk`, `PickPlaceBread`, `PickPlaceCereal`, and `NutAssemblyRound` tasks. They are available from the [**Microsoft Download Center**](https://www.microsoft.com/en-us/download/details.aspx?id=105664).
+
+For Robomimic, demonstration sets for `Lift`, `NutAssemblySquare` and `PickPlaceCan`, 200 trajectories per task, are availabe at the [**Robomimic webpage**](https://robomimic.github.io/docs/datasets/robomimic_v0.1.html#downloading).
+
+Both the Robosuite and Robomimic data we used is of "professional human (ph)" quality, and each experiment involved at most 75 demonstrations per task. Before runnning the experiments, the Robosuite and Robomimic data in the `raw` format needs to be downloaded and processed. The following command runs the download and processing end-to-end:
+
+```
+python scripts/setup_RR_data_for_PLEX.py --out=store/data
+```
+
+If everything worked, in `store/data` for each of the Robotsuite and Robomimic tasks you should see directory paths such as `robouite/Stack/Panda/raw/` and `Stack/Panda/ph/`, where `Stack/Panda/raw/` contains one or several hdf5 files with raw data and `Stack/Panda/ph/` contains the same number of much larger hdf5 files that contain the processed demonstrations.
+
+
+
+
+### Running the PLEX paper's Robosuite/Robomimic experiments
+
+The following command run from the PLEX repo root trains PLEX with the relative position encoding in BC mode on Robosuite's `Stack` task on 10 randomly chosen demonstration trajectories on 1 seed :
+```
+python scripts/exps_on_RR.py --arch=plex-rel --data_dir=store/data/ --log_dir=store/logs/ --target_task=robosuite/Stack/--TARGET_ROBOT--/ph/ --max_tt=10 --num_workers=5
+```
+
+To train PLEX for the same `Stack` target task and the same hyperparameters but with the absolute position encoding, run
+
+```
+python scripts/exps_on_RR.py --arch=plex-abs --data_dir=store/data/ --log_dir=store/logs/ --target_task=robosuite/Stack/--TARGET_ROBOT--/ph/ --max_tt=10 --num_workers=5
+```
+
+To train the Decision Transformer, which uses global position encodring but is otherwise comparable to PLEX in size and training hyperparameters, run
+
+```
+python scripts/exps_on_RR.py --arch=dt --data_dir=store/data/ --log_dir=store/logs/ --target_task=robosuite/Stack/--TARGET_ROBOT--/ph/ --max_tt=10 --num_workers=5
+```
+
+Generating the curves in Figure 3 of the [PLEX paper](https://arxiv.org/abs/2303.08789) requires running these commands for each of the tasks (using `robosuite/Door/--TARGET_ROBOT--/ph/`, `robosuite/Stack/--TARGET_ROBOT--/ph/`, `robosuite/PickPlaceMilk/--TARGET_ROBOT--/ph/`, `robosuite/PickPlaceBread/--TARGET_ROBOT--/ph/`, `robosuite/PickPlaceCereal/--TARGET_ROBOT--/ph/`, `robosuite/NutAssemblyRound/--TARGET_ROBOT--/ph/`, `robomimic/Lift/--TARGET_ROBOT--/ph/`, `robomimic/NutAssemblySquare/--TARGET_ROBOT--/ph/`, and `robomimic/PickPlaceCan/--TARGET_ROBOT--/ph/` as `--target_task`) for each `--max_tt` value in {5, 10, 25, 50, 75} for 10 seeds.
+
+
+**NOTE**: As with Meta-World experiments, if running PLEX on CPU, set `--num_workers=0`. Running PLEX on CPU with `--num_workers` > 0 will throw a `"To use CUDA with multiprocessing, you must use the 'spawn' start method"` error, and using the `spawn` method will throw another error.
 
 
 ## Citing PLEX and the accompanying data

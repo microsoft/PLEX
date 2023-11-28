@@ -7,7 +7,7 @@ if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-o", "--out", type=str, default='data', help = "Directory path where the demonstration data is to be written.")
     args = parser.parse_args()
-    out_path=pathlib.Path(args.out)
+    out_path = pathlib.Path(args.out) / 'metaworld'
     out_path.mkdir(parents=True, exist_ok=True)
 
     # Generate 75 trajectories for each of the 5 target tasks of Meta-World's ML50, with noise=0.5.

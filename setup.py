@@ -11,6 +11,7 @@ setup(
     description='An implementation of the PLanning-EXecution (PLEX) architecture to accompany the paper (https://arxiv.org/abs/2303.08789)',
     long_description=open('README.md').read(),
     install_requires=[
+        "attrdict==2.0.1",
         "h5py==3.4.0",
         "numpy<=1.23.5",
         "mujoco==2.1.5",
