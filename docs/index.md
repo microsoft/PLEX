@@ -32,7 +32,7 @@ This separation makes PLEX especially amenable to training on the aforementioned
 **Pretraining.** We investigate the performance of PLEX on the Meta-World benchmark by training PLEX on videos from 45 pretraining tasks of Meta-World's ML50 split and finetuning it on each of ML50's 5 other tasks:
 
 <div style="text-align:center">
-    <img src="./assets/img/metaworld-results.png" alt="Meta-World results" width="60%" height="auto"/>
+    <img src="./assets/img/metaworld-results.png" alt="Meta-World results" width="50%" height="auto"/>
 </div>
 
 Interestingly, PLEX works fairly well even zero-shot, and needs only videos of the target task demonstrations.
