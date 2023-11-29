@@ -1,15 +1,8 @@
-/*
-Title: PLEX
-*/
-
+---
 title: PLEX: 'Making the Most of the Available Data for Robotic Manipulation Pretraining' layout: default
 ---
 
-## Motivation
-
-<div style="text-align:center">
-    <img src="./assets/img/PLEX.png" alt="PLEX architecture" align="right" width="40%" height="auto"/>
-</div>
+## PLEX and the available robotic manipulation data
 
 Data-driven methods for producing robotic manipulation policies have the potential to be effective and scalable, replacing manually engineered controllers. At the same time, recent trends in natural language processing have shown that transformers trained on large amounts of data can exhibit impressive capabilities. In an effort to combine these trends, we introduce **PLEX**, a scalable transformer-based architecture that can take advantage of several forms of data practically available in quantity and relevant to robotic manipulation. In particular, we consider three common classes of data available for training robotic manipulation models:
 
@@ -24,6 +17,10 @@ Note that the more widely available data tends to be less informative (e.g. vide
 ## Method
 
 Our ***PL*anning-*EX*ecution (PLEX)** architecture separates the model into a *planner*, which predicts the future observations (in a latent space), and an *executor*, which predicts the actions needed to effect those future observations:
+
+<div style="text-align:center">
+    <img src="./assets/img/PLEX.png" alt="PLEX architecture" width="40%" height="auto"/>
+</div>
 
 This separation makes PLEX especially amenable to training on the aforementioned data categories. The executor along with the image observation encoder is pretrained on the **VMT** data, the planner is pretrained on the **MTVD** data, and the entire PLEX architecture is then finetuned on **TTD** trajectories.
 
