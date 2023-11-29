@@ -17,21 +17,27 @@ Note that the more widely available data tends to be less informative (e.g. vide
 
 ## Method
 Our ***PL*anning-*EX*ecution (PLEX)** architecture separates the model into a *planner*, which predicts the future observations (in a latent space), and an *executor*, which predicts the actions needed to effect those future observations:
-![architecture](./assets/img/PLEX.png)
-During pretraining, the planner is trained using MTVD data, and the executor is trained using VMT data.
+<div style="text-align:center">
+    <img src="./assets/img/PLEX.png" alt="image" width="50%" height="auto"/>
+</div>
 
-During fine-tuning, the entire network is trained end-to-end using TTD data.
+This separation makes PLEX especially amenable to training on the aforementioned data categories. The executor along with the image observation encoder is pretrained on the **VMT** data, the planner is pretrained on the **MTVD** data, and the entire PLEX architecture is then finetuned on **TTD** trajectories.
 
 
 ## Experiments
 
 ![Examples of tasks used in experiments](./assets/img/robots.png)
 
-We investigate the performance of PLEX on the Meta-World benchmark by training PLEX on videos from 45 pretraining tasks of Meta-World's ML50 split and finetuning it on each of ML50's 5 other tasks:
-![Meta-World results](./assets/img/metaworld-results.png)
+**Pretraining.** We investigate the performance of PLEX on the Meta-World benchmark by training PLEX on videos from 45 pretraining tasks of Meta-World's ML50 split and finetuning it on each of ML50's 5 other tasks:
+<div style="text-align:center">
+    <img src="./assets/img/metaworld-results.png" alt="image" width="80%" height="auto"/>
+</div>
+
 Interestingly, PLEX works fairly well even zero-shot, and needs only videos of the target task demonstrations.
 
-To assess the effectiveness of PLEX's relative position encoding, we also evaluate PLEX on the Robosuite/Robomimic benchmark. The results demonstrate that the version with relative position encoding outperforms PLEX with absolute encoding -- the typical position encoding choice in the transformer literature -- as well as the vanilla Decision Transformer, which relies on the global position encoding scheme:
-![Robosuite results](./assets/img/robosuite-results.png)
+**Relative vs. absolute position encoding.** One distinguishing feature of PLEX compared to most other transformer-based architectures is its use of relative rather than absolute position encoding. To assess the effectiveness of this design choice, we train PLEX in BC mode from scratch on 9 tasks of the Robosuite/Robomimic benchmark. The results demonstrate that the version with relative position encoding outperforms PLEX with absolute encoding as well as the vanilla Decision Transformer, which relies on the global position encoding scheme:
+<div style="text-align:center">
+    <img src="./assets/img/robosuite-results.png" alt="image" width="90%" height="auto"/>
+</div>
 
 **NOTE on the Robosuite dataset:** For the Robosuite experiments, we gathered a dataset of high-qualty demonstration trajectories for Robosuite's `Door`, `Stack`, `PickPlaceMilk`, `PickPlaceBread`, `PickPlaceCereal`, and `NutAssemblyRound` tasks, 75 demonstrations per each. The dataset is available from the [**Microsoft Download Center**](https://www.microsoft.com/en-us/download/details.aspx?id=105664), and instructions for processing it can be found [here](https://github.com/microsoft/PLEX#robosuiterobomimic-data-setup).
