@@ -23,7 +23,7 @@ setup(
         "gym==0.20.0",
         "torch<=2.0.1",
         "torchvision",
-        "transformers==4.30",
+        "transformers==4.36.0",
         "opencv-python==4.5.3.56",
         "opencv-python-headless==4.3.0.36",
         "wandb==0.9.1",
